@@ -1,5 +1,6 @@
 import { app, Menu } from "electron";
 import type { MenuItemConstructorOptions } from "electron";
+import { ipcMain } from "./ipc";
 
 const isMac = process.platform === "darwin";
 
@@ -19,13 +20,6 @@ const template: MenuItemConstructorOptions[] = [
       { role: "paste" },
       { role: "delete" },
       { role: "selectAll" },
-      { type: "separator" },
-      {
-        label: "Ipc Test",
-        click(_item, focusedWindow): void {
-          focusedWindow?.webContents.send("hello", { message: "electron" });
-        },
-      },
     ],
   },
   {
@@ -40,6 +34,17 @@ const template: MenuItemConstructorOptions[] = [
       { role: "zoomOut" },
       { type: "separator" },
       { role: "togglefullscreen" },
+    ],
+  },
+  {
+    label: "Query",
+    submenu: [
+      {
+        label: "Execute",
+        click(_item, focusedWindow): void {
+          focusedWindow && ipcMain.send(focusedWindow, "executeQueryFromMenu");
+        },
+      },
     ],
   },
   {

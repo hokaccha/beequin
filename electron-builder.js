@@ -1,8 +1,8 @@
 module.exports = {
-  productName: "ElectronStarter",
+  productName: "Beequen",
   asar: true,
   mac: {
-    icon: "build/icon.png",
+    icon: "assets/icon.icns",
   },
   files: ["out"],
 };

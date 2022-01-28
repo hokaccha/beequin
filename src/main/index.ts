@@ -2,10 +2,12 @@ import { join } from "path";
 import { BrowserWindow, app } from "electron";
 import isDev from "electron-is-dev";
 import prepareNext from "electron-next";
+import { initIpc } from "./ipc-handler";
 import { initMenu } from "./menu";
 
 app.on("ready", async () => {
   initMenu();
+  initIpc();
 
   const port = process.env.PORT ? parseInt(process.env.PORT) : 18000;
 
@@ -18,11 +20,11 @@ app.on("ready", async () => {
   );
 
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: false,
+      contextIsolation: true,
       preload: join(__dirname, "preload.js"),
     },
   });

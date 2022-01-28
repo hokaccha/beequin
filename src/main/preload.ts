@@ -1,12 +1,4 @@
-import type { IpcRenderer } from "electron";
-import { ipcRenderer } from "electron";
+import { contextBridge } from "electron";
+import { ipc } from "./ipc";
 
-declare global {
-  interface Window {
-    ipcRenderer: IpcRenderer;
-  }
-}
-
-process.once("loaded", () => {
-  window.ipcRenderer = ipcRenderer;
-});
+contextBridge.exposeInMainWorld("ipc", ipc);
