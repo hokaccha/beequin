@@ -44,6 +44,7 @@
     "next": "latest",
     "npm-run-all": "latest",
     "prettier": "latest",
+    "ts-node": "^10.4.0",
     "typescript": "latest"
   }
 }
