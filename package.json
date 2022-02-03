@@ -32,7 +32,8 @@
     "monaco-editor": "^0.31.1",
     "react": "latest",
     "react-dom": "latest",
-    "react-icons": "^4.3.1"
+    "react-icons": "^4.3.1",
+    "react-use": "^17.3.2"
   },
   "devDependencies": {
     "@types/node": "latest",
