@@ -1,4 +1,5 @@
 import { BigQuery } from "@google-cloud/bigquery";
+import { wait } from "../utils/timer";
 
 type BigQueryClientOption = {
   projectId: string;
@@ -17,8 +18,14 @@ export type DryRunResponse = {
   totalBytesProcessed: string;
 };
 
+export type Table = {
+  id: string;
+  type: "TABLE" | "VIEW" | "EXTERNAL" | "MATERIALIZED_VIEW";
+};
+
 export type Dataset = {
   id: string;
+  tables: Table[];
 };
 
 export class BigQueryClient {
@@ -50,13 +57,41 @@ export class BigQueryClient {
   }
 
   async getDatasets(): Promise<Dataset[]> {
+    let calledApiCount = 1;
+    let promises: Promise<void>[] = [];
     const [datasets] = await this.bigquery.getDatasets();
-    return datasets
-      .filter((dataset) => dataset.id)
-      .map((dataset) => {
-        return {
-          id: dataset.id ?? "",
-        };
-      });
+    const ret: Dataset[] = [];
+
+    for (const dataset of datasets) {
+      if (!dataset.id) continue;
+      const datasetValue: Dataset = { id: dataset.id, tables: [] };
+      ret.push(datasetValue);
+      const fetchTable = async () => {
+        const [tables] = await dataset.getTables();
+        for (const table of tables) {
+          if (!table.id) continue;
+          datasetValue.tables.push({
+            id: table.id,
+            type: table.metadata.type,
+          });
+        }
+      };
+      calledApiCount++;
+      promises.push(fetchTable());
+
+      // https://cloud.google.com/bigquery/quotas#api_request_quotas
+      // > A user can make up to 100 API requests per second to an API method.
+      if (calledApiCount >= 100) {
+        promises.push(wait(1000));
+        await Promise.all(promises);
+        promises = [];
+        calledApiCount = 0;
+      }
+    }
+
+    // flush promises
+    await Promise.all(promises);
+
+    return ret;
   }
 }

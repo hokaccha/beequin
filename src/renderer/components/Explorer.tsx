@@ -14,6 +14,8 @@ export const Explorer: FC = () => {
     console.log(datasetId);
   }, []);
 
+  console.log(state.value);
+
   return (
     <Box>
       {state.loading ? (
@@ -25,6 +27,11 @@ export const Explorer: FC = () => {
           {state.value?.map((dataset) => (
             <ListItem key={dataset.id} onClick={() => handleClickItem(dataset.id)}>
               {dataset.id}
+              <UnorderedList>
+                {dataset.tables.map((table) => (
+                  <ListItem key={table.id}>{table.id}</ListItem>
+                ))}
+              </UnorderedList>
             </ListItem>
           ))}
         </UnorderedList>
