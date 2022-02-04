@@ -1,5 +1,4 @@
 import { Box, Button, Flex } from "@chakra-ui/react";
-import type { OnMount } from "@monaco-editor/react";
 import type { FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -27,15 +26,6 @@ export const App: FC = () => {
     setQueryResult(response);
   }, [getCurrentQuery]);
 
-  const handleEditorDidMount: OnMount = useCallback(
-    (editor, monaco) => {
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-        executeQuery();
-      });
-    },
-    [executeQuery]
-  );
-
   useEffect(() => {
     ipc.on.executeQueryFromMenu(() => {
       executeQuery();
@@ -47,7 +37,7 @@ export const App: FC = () => {
       <Flex>
         <Box flex={1}>
           <Box height="50vh">
-            <Editor defaultQuery={getCurrentQuery()} onChange={saveQuery} onMount={handleEditorDidMount} />
+            <Editor defaultQuery={getCurrentQuery()} onChange={saveQuery} onExecute={executeQuery} />
           </Box>
           <Flex bg="#efefef" width="100%" padding={2} gap={2}>
             <Button leftIcon={<IoMdArrowDroprightCircle />} size="sm" colorScheme="blue" onClick={executeQuery}>

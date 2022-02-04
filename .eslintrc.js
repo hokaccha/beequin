@@ -38,6 +38,7 @@ module.exports = {
   ],
   rules: {
     eqeqeq: ["error", "allow-null"],
+    "no-console": ["error", { allow: ["info", "warn", "error"] }],
     "prefer-const": "error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",

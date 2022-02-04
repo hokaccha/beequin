@@ -11,10 +11,8 @@ export const Explorer: FC = () => {
   }, []);
 
   const handleClickItem = useCallback((datasetId: string) => {
-    console.log(datasetId);
+    console.info(datasetId);
   }, []);
-
-  console.log(state.value);
 
   return (
     <Box>
