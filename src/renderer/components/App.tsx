@@ -37,7 +37,12 @@ export const App: FC = () => {
       <Flex>
         <Box flex={1}>
           <Box height="50vh">
-            <Editor defaultQuery={getCurrentQuery()} onChange={saveQuery} onExecute={executeQuery} />
+            <Editor
+              defaultQuery={getCurrentQuery()}
+              onChange={saveQuery}
+              onExecute={executeQuery}
+              onExecuteDryRun={dryRunQuery}
+            />
           </Box>
           <Flex bg="#efefef" width="100%" padding={2} gap={2}>
             <Button leftIcon={<IoMdArrowDroprightCircle />} size="sm" colorScheme="blue" onClick={executeQuery}>

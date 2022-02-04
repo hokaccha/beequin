@@ -22,6 +22,7 @@ type Props = {
   defaultQuery: string;
   onChange: (query: string) => void;
   onExecute: () => void;
+  onExecuteDryRun: () => void;
 };
 
 const DEFAULT_INDENT = 2;
@@ -33,7 +34,7 @@ const options: EditorConfiguration = {
   indentUnit: DEFAULT_INDENT, // Todo: configurable
 };
 
-export const Editor: FC<Props> = ({ defaultQuery, onChange, onExecute }) => {
+export const Editor: FC<Props> = ({ defaultQuery, onChange, onExecute, onExecuteDryRun }) => {
   const editorRef = useRef<CodeMirrorEditor | null>(null);
   const handleChange = useCallback<NonNullable<IUnControlledCodeMirror["onChange"]>>(
     (_editor, _data, value) => {
@@ -48,6 +49,9 @@ export const Editor: FC<Props> = ({ defaultQuery, onChange, onExecute }) => {
         // Now supports only macOS
         "Cmd-Enter": () => {
           onExecute();
+        },
+        "Shift-Cmd-Enter": () => {
+          onExecuteDryRun();
         },
         "Cmd-A": () => {
           editor.execCommand("selectAll");
@@ -81,7 +85,7 @@ export const Editor: FC<Props> = ({ defaultQuery, onChange, onExecute }) => {
         },
       });
     },
-    [onExecute]
+    [onExecute, onExecuteDryRun]
   );
 
   return (
