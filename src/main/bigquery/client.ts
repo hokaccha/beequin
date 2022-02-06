@@ -50,7 +50,6 @@ export class BigQueryClient {
 
   async dryRunQuery(query: string): Promise<DryRunResponse> {
     const [job] = await this.bigquery.createQueryJob({ query, dryRun: true });
-    console.log(job);
     return {
       totalBytesProcessed: job.metadata.statistics.totalBytesProcessed,
     };

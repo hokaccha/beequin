@@ -1,6 +1,7 @@
 import type { Editor as CodeMirrorEditor, EditorConfiguration } from "codemirror";
 import type { FC } from "react";
-import { useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
+
 import { UnControlled as CodeMirror } from "react-codemirror2";
 import type { IUnControlledCodeMirror } from "react-codemirror2";
 import { format } from "sql-formatter";
@@ -36,57 +37,61 @@ const options: EditorConfiguration = {
 
 export const Editor: FC<Props> = ({ defaultQuery, onChange, onExecute, onExecuteDryRun }) => {
   const editorRef = useRef<CodeMirrorEditor | null>(null);
+
+  const handleDidMount = useCallback((editor: CodeMirrorEditor) => {
+    editorRef.current = editor;
+  }, []);
+
   const handleChange = useCallback<NonNullable<IUnControlledCodeMirror["onChange"]>>(
     (_editor, _data, value) => {
       onChange(value || "");
     },
     [onChange]
   );
-  const handleDidMount = useCallback(
-    (editor: CodeMirrorEditor) => {
-      editorRef.current = editor;
-      editor.setOption("extraKeys", {
-        // Now supports only macOS
-        "Cmd-Enter": () => {
-          onExecute();
-        },
-        "Shift-Cmd-Enter": () => {
-          onExecuteDryRun();
-        },
-        "Cmd-A": () => {
-          editor.execCommand("selectAll");
-        },
-        "Cmd-/": () => {
-          editor.execCommand("toggleComment");
-        },
-        "Shift-Cmd-F": (cm: CodeMirror.Editor) => {
-          let formattedQuery: string | null = null;
-          try {
-            formattedQuery = format(cm.getValue(), {
-              linesBetweenQueries: 2,
-              indent: " ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT),
-              uppercase: false,
-            });
-          } catch (err) {
-            alert("Format failed😢");
-            console.error(err);
-          }
-          if (formattedQuery) {
-            cm.setValue(formattedQuery);
-          }
-        },
-        Tab: (cm: CodeMirror.Editor) => {
-          if (!cm.state.vim) {
-            if (cm.getDoc().somethingSelected()) cm.execCommand("indentMore");
-            else cm.replaceSelection(" ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT));
-          } else if (cm.state.vim.insertMode) {
-            cm.replaceSelection(" ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT));
-          }
-        },
-      });
-    },
-    [onExecute, onExecuteDryRun]
-  );
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (editor === null) return;
+    editor.setOption("extraKeys", {
+      // Now supports only macOS
+      "Cmd-Enter": () => {
+        onExecute();
+      },
+      "Shift-Cmd-Enter": () => {
+        onExecuteDryRun();
+      },
+      "Cmd-A": () => {
+        editor.execCommand("selectAll");
+      },
+      "Cmd-/": () => {
+        editor.execCommand("toggleComment");
+      },
+      "Shift-Cmd-F": (cm: CodeMirror.Editor) => {
+        let formattedQuery: string | null = null;
+        try {
+          formattedQuery = format(cm.getValue(), {
+            linesBetweenQueries: 2,
+            indent: " ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT),
+            uppercase: false,
+          });
+        } catch (err) {
+          alert("Format failed😢");
+          console.error(err);
+        }
+        if (formattedQuery) {
+          cm.setValue(formattedQuery);
+        }
+      },
+      Tab: (cm: CodeMirror.Editor) => {
+        if (!cm.state.vim) {
+          if (cm.getDoc().somethingSelected()) cm.execCommand("indentMore");
+          else cm.replaceSelection(" ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT));
+        } else if (cm.state.vim.insertMode) {
+          cm.replaceSelection(" ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT));
+        }
+      },
+    });
+  }, [onExecute, onExecuteDryRun]);
 
   return (
     <div className="Editor">

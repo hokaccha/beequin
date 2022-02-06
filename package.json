@@ -36,13 +36,15 @@
     "react-dom": "latest",
     "react-icons": "^4.3.1",
     "react-use": "^17.3.2",
-    "sql-formatter": "hokaccha/sql-formatter#dist"
+    "sql-formatter": "hokaccha/sql-formatter#dist",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/codemirror": "^5.60.5",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "electron": "latest",
