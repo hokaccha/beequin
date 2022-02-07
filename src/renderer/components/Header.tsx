@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 
 import { IoSettingsSharp } from "react-icons/io5";
 import { ProjectModal } from "./ProjectModal";
+import type { OnChangeProjects } from "./ProjectModal";
 import type { Project } from "~/../main/project/project";
 
 import { ipc } from "~/lib/ipc";
@@ -22,34 +23,40 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
     ipc.invoke.getProjects().then((projects) => setProjects(projects));
   }, []);
 
-  useEffect(() => {
-    setUpdateTargetProject(currentProject);
-  }, [currentProject]);
-
   const handleClickNewProject = useCallback(() => {
     setUpdateTargetProject(null);
     onOpen();
   }, [onOpen]);
 
+  const handleClickSettingProject = useCallback(() => {
+    setUpdateTargetProject(currentProject);
+    onOpen();
+  }, [currentProject, onOpen]);
+
   const handleChangeProject = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       const uuid = event.target.value;
       const project = projects.find((p) => p.uuid === uuid) || null;
-      setUpdateTargetProject(project);
       onChangeCurrentProject(project);
     },
     [onChangeCurrentProject, projects]
   );
 
-  const handleChangeProjects = useCallback<(args?: { createdProject?: Project; deletedProject?: Project }) => void>(
-    async ({ createdProject, deletedProject } = {}) => {
+  const handleChangeProjects = useCallback<OnChangeProjects>(
+    async ({ project, type }) => {
       const projects = await ipc.invoke.getProjects();
       setProjects(projects);
-      if (createdProject) {
-        onChangeCurrentProject(createdProject);
-      }
-      if (deletedProject && currentProject && deletedProject.uuid === currentProject.uuid) {
-        onChangeCurrentProject(projects[0] || null);
+
+      switch (type) {
+        case "create":
+        case "update":
+          onChangeCurrentProject(project);
+          break;
+        case "delete":
+          if (currentProject && project.uuid === currentProject.uuid) {
+            onChangeCurrentProject(projects[0] || null);
+          }
+          break;
       }
     },
     [currentProject, onChangeCurrentProject]
@@ -73,7 +80,7 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
           </Select>
         )}
         {currentProject && (
-          <Button size="sm" colorScheme="blue" onClick={onOpen}>
+          <Button size="sm" colorScheme="blue" onClick={handleClickSettingProject}>
             <IoSettingsSharp />
           </Button>
         )}

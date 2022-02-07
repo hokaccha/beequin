@@ -10,7 +10,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Text,
 } from "@chakra-ui/react";
 import type { FC } from "react";
 import { useState, useCallback } from "react";
@@ -18,13 +17,16 @@ import { useState, useCallback } from "react";
 import type { Project } from "~/../main/project/project";
 import { ipc } from "~/lib/ipc";
 
+export type OnChangeProjects = ({ project, type }: { project: Project; type: "create" | "update" | "delete" }) => void;
+
 type Props = {
   project: Project | null;
   onClose: () => void;
-  onChangeProjects: (args?: { createdProject?: Project; deletedProject?: Project }) => void;
+  onChangeProjects: OnChangeProjects;
 };
 
 export const ProjectModal: FC<Props> = ({ project, onClose, onChangeProjects }) => {
+  const isEditMode = !!project;
   const [projectId, setProjectId] = useState(project?.projectId || "");
   const [keyFilename, setKeyFilename] = useState<string>(project?.keyFilename || "");
 
@@ -36,30 +38,42 @@ export const ProjectModal: FC<Props> = ({ project, onClose, onChangeProjects }) 
     setKeyFilename(event.target.value);
   }, []);
 
-  const handleCreate = useCallback(async () => {
-    const project = await ipc.invoke.createProject({
-      projectId,
-      keyFilename,
-    });
-    onChangeProjects({ createdProject: project });
-    onClose();
-  }, [onClose, onChangeProjects, projectId, keyFilename]);
+  const handleCreate = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      if (!projectId) return;
+      const project = await ipc.invoke.createProject({
+        projectId,
+        keyFilename,
+      });
+      onChangeProjects({ project, type: "create" });
+      onClose();
+    },
+    [onClose, onChangeProjects, projectId, keyFilename]
+  );
 
-  const handleUpdate = useCallback(async () => {
-    if (project === null) return;
-    await ipc.invoke.updateProject({
-      uuid: project.uuid,
-      projectId,
-      keyFilename,
-    });
-    onChangeProjects();
-    onClose();
-  }, [project, onClose, onChangeProjects, projectId, keyFilename]);
+  const handleUpdate = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      if (!projectId) return;
+      if (project === null) return;
+      const newProject = {
+        uuid: project.uuid,
+        projectId,
+        keyFilename,
+      };
+      await ipc.invoke.updateProject(newProject);
+      onChangeProjects({ project: newProject, type: "update" });
+      onClose();
+    },
+    [project, onClose, onChangeProjects, projectId, keyFilename]
+  );
 
   const handleDelete = useCallback(async () => {
+    if (!window.confirm("Are you sure?")) return;
     if (project === null) return;
     await ipc.invoke.deleteProject(project.uuid);
-    onChangeProjects({ deletedProject: project });
+    onChangeProjects({ project, type: "delete" });
     onClose();
   }, [project, onClose, onChangeProjects]);
 
@@ -69,40 +83,47 @@ export const ProjectModal: FC<Props> = ({ project, onClose, onChangeProjects }) 
       <ModalContent>
         <ModalHeader>{project ? "Edit Project" : "New Project"}</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
-          <FormControl isRequired>
-            <FormLabel mb={2} htmlFor="projectIdInput">
-              Project ID
+        <form>
+          <ModalBody>
+            <FormControl isRequired isInvalid={!projectId}>
+              <FormLabel mb={2} htmlFor="projectIdInput">
+                Project ID
+              </FormLabel>
+              <Input
+                id="projectIdInput"
+                defaultValue={projectId}
+                onChange={handleChangeProjectId}
+                autoFocus={!isEditMode}
+              />
+            </FormControl>
+            <FormLabel mt={4} mb={2} htmlFor="keyFilenameInput">
+              JSON Key File Path
             </FormLabel>
-            <Input id="projectIdInput" defaultValue={projectId} onChange={handleChangeProjectId} />
-          </FormControl>
-          <FormLabel mt={4} mb={2} htmlFor="keyFilenameInput">
-            JSON Key File Path
-          </FormLabel>
-          <Input
-            id="keyFilenameInput"
-            value={keyFilename}
-            onChange={handleChangeKeyFilename}
-            placeholder="/Users/your_name/.config/gcloud/credentials.json"
-          />
-        </ModalBody>
+            <Input
+              id="keyFilenameInput"
+              value={keyFilename}
+              onChange={handleChangeKeyFilename}
+              placeholder="/Users/your_name/.config/gcloud/credentials.json"
+            />
+          </ModalBody>
 
-        <ModalFooter>
-          {project ? (
-            <>
-              <Button colorScheme="red" onClick={handleDelete}>
-                Delete
+          <ModalFooter>
+            {isEditMode ? (
+              <>
+                <Button colorScheme="red" onClick={handleDelete}>
+                  Delete
+                </Button>
+                <Button colorScheme="blue" ml={3} onClick={handleUpdate} type="submit">
+                  Save
+                </Button>
+              </>
+            ) : (
+              <Button colorScheme="blue" onClick={handleCreate} type="submit">
+                Create
               </Button>
-              <Button colorScheme="blue" ml={3} onClick={handleUpdate}>
-                Save
-              </Button>
-            </>
-          ) : (
-            <Button colorScheme="blue" onClick={handleCreate}>
-              Create
-            </Button>
-          )}
-        </ModalFooter>
+            )}
+          </ModalFooter>
+        </form>
       </ModalContent>
     </Modal>
   );
