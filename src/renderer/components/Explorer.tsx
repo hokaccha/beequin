@@ -1,4 +1,6 @@
 import { Box, ListItem, UnorderedList } from "@chakra-ui/react";
+import { faSync } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
 import { useCallback } from "react";
 import { useAsync } from "react-use";
@@ -23,7 +25,9 @@ export const Explorer: FC<Props> = ({ project }) => {
   return (
     <Box>
       {state.loading ? (
-        <Box>Loading...</Box>
+        <Box textAlign="center" pt={20} color="gray.400">
+          <FontAwesomeIcon size="lg" icon={faSync} spin />
+        </Box>
       ) : state.error ? (
         <Box>Error: {state.error.message}</Box>
       ) : (

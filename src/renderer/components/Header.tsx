@@ -66,28 +66,34 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
   return (
     <Box bg="gray.100" padding={2}>
       <Flex gap={2}>
-        {projects.length !== 0 && (
-          <Select
-            w="auto"
-            onChange={handleChangeProject}
-            placeholder={currentProject ? undefined : "Select Project"}
-            value={currentProject?.uuid}
-          >
-            {projects.map((project) => (
-              <option key={project.uuid} value={project.uuid}>
-                {project.projectId}
-              </option>
-            ))}
-          </Select>
-        )}
+        <Box>
+          {projects.length !== 0 && (
+            <Select
+              w="auto"
+              onChange={handleChangeProject}
+              placeholder={currentProject ? undefined : "Select Project"}
+              value={currentProject?.uuid}
+            >
+              {projects.map((project) => (
+                <option key={project.uuid} value={project.uuid}>
+                  {project.projectId}
+                </option>
+              ))}
+            </Select>
+          )}
+        </Box>
         {currentProject && (
-          <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickSettingProject}>
-            <FontAwesomeIcon icon={faCog} />
-          </Button>
+          <Box display="flex" alignItems="center">
+            <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickSettingProject}>
+              <FontAwesomeIcon icon={faCog} />
+            </Button>
+          </Box>
         )}
-        <Button onClick={handleClickNewProject} colorScheme="green" size="sm">
-          Create New Project
-        </Button>
+        <Box display="flex" alignItems="center">
+          <Button onClick={handleClickNewProject} colorScheme="green" size="sm">
+            Create New Project
+          </Button>
+        </Box>
       </Flex>
       {isOpen && (
         <ProjectModal project={updateTargetProject} onClose={onClose} onChangeProjects={handleChangeProjects} />
