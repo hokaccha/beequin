@@ -1,5 +1,7 @@
 import {
+  Box,
   Button,
+  Flex,
   FormControl,
   FormLabel,
   Input,
@@ -11,6 +13,8 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react";
+import { faSync, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
 import { useState, useCallback } from "react";
 
@@ -77,6 +81,22 @@ export const ProjectModal: FC<Props> = ({ project, onClose, onChangeProjects }) 
     onClose();
   }, [project, onClose, onChangeProjects]);
 
+  const [connectionTestResult, setConnectionTestResult] = useState<"beforeTest" | "loading" | "success" | "error">(
+    "beforeTest"
+  );
+  const handleClickConnectionTest = useCallback(async () => {
+    if (!projectId) {
+      setConnectionTestResult("error");
+      return;
+    }
+    setConnectionTestResult("loading");
+    const result = await ipc.invoke.validateProject({
+      projectId,
+      keyFilename,
+    });
+    setConnectionTestResult(result ? "success" : "error");
+  }, [projectId, keyFilename]);
+
   return (
     <Modal isOpen={true} onClose={onClose}>
       <ModalOverlay />
@@ -108,6 +128,28 @@ export const ProjectModal: FC<Props> = ({ project, onClose, onChangeProjects }) 
           </ModalBody>
 
           <ModalFooter>
+            <Box position="absolute" left={6}>
+              <Flex gap={3}>
+                <Button onClick={handleClickConnectionTest} size="sm">
+                  Connection Test
+                </Button>
+                {connectionTestResult === "success" && (
+                  <Box color="green.600">
+                    <FontAwesomeIcon icon={faCheck} size="sm" />
+                  </Box>
+                )}
+                {connectionTestResult === "error" && (
+                  <Box color="red.600">
+                    <FontAwesomeIcon icon={faTimes} size="sm" />
+                  </Box>
+                )}
+                {connectionTestResult === "loading" && (
+                  <Box color="gray.600">
+                    <FontAwesomeIcon icon={faSync} size="sm" spin />
+                  </Box>
+                )}
+              </Flex>
+            </Box>
             {isEditMode ? (
               <>
                 <Button colorScheme="red" onClick={handleDelete}>

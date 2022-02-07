@@ -1,8 +1,9 @@
 import { Box, Button, Flex, Select, useDisclosure } from "@chakra-ui/react";
+import { faCog } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
 import { useEffect, useState, useCallback } from "react";
 
-import { IoSettingsSharp } from "react-icons/io5";
 import { ProjectModal } from "./ProjectModal";
 import type { OnChangeProjects } from "./ProjectModal";
 import type { Project } from "~/../main/project/project";
@@ -80,8 +81,8 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
           </Select>
         )}
         {currentProject && (
-          <Button size="sm" colorScheme="blue" onClick={handleClickSettingProject}>
-            <IoSettingsSharp />
+          <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickSettingProject}>
+            <FontAwesomeIcon icon={faCog} />
           </Button>
         )}
         <Button onClick={handleClickNewProject} colorScheme="green" size="sm">

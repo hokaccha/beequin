@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { app } from "electron";
 import { v4 as uuidv4 } from "uuid";
+import { BigQueryClient } from "../bigquery/client";
 
 export type Project = {
   uuid: string;
@@ -76,6 +77,11 @@ export async function deleteProject(uuid: string): Promise<void> {
 }
 
 export async function validateProject(project: Omit<Project, "uuid">): Promise<boolean> {
-  console.info(project);
-  return true;
+  const client = new BigQueryClient(project);
+  try {
+    await client.executeQuery("select 1 /* Beequen validation query */");
+    return true;
+  } catch {
+    return false;
+  }
 }

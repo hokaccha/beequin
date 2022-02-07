@@ -1,8 +1,9 @@
 import { Box, Button, Flex } from "@chakra-ui/react";
+import { faChevronCircleRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 
-import { IoMdArrowDroprightCircle } from "react-icons/io";
 import { Editor } from "./Editor";
 import { Explorer } from "./Explorer";
 import { Header } from "./Header";
@@ -69,10 +70,20 @@ export const App: FC = () => {
             />
           </Box>
           <Flex bg="gray.200" width="full" padding={2} gap={2}>
-            <Button leftIcon={<IoMdArrowDroprightCircle />} size="sm" colorScheme="blue" onClick={executeQuery}>
+            <Button
+              leftIcon={<FontAwesomeIcon icon={faChevronCircleRight} />}
+              size="sm"
+              colorScheme="blue"
+              onClick={executeQuery}
+            >
               Run
             </Button>
-            <Button leftIcon={<IoMdArrowDroprightCircle />} size="sm" colorScheme="blue" onClick={dryRunQuery}>
+            <Button
+              leftIcon={<FontAwesomeIcon icon={faChevronCircleRight} />}
+              size="sm"
+              colorScheme="blue"
+              onClick={dryRunQuery}
+            >
               Dry Run
             </Button>
           </Flex>
