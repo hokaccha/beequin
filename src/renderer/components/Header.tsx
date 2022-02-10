@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
 import { useEffect, useState, useCallback } from "react";
 
+import { GlobalSettingModal } from "./GlobalSettingModal";
 import { ProjectModal } from "./ProjectModal";
 import type { OnChangeProjects } from "./ProjectModal";
 import type { Project } from "~/../main/project/project";
@@ -16,7 +17,8 @@ type Props = {
 };
 
 export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const projectSettingModalDisclosure = useDisclosure();
+  const globalSettingModalDisclosure = useDisclosure();
   const [updateTargetProject, setUpdateTargetProject] = useState<Project | null>(currentProject);
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -26,13 +28,13 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
 
   const handleClickNewProject = useCallback(() => {
     setUpdateTargetProject(null);
-    onOpen();
-  }, [onOpen]);
+    projectSettingModalDisclosure.onOpen();
+  }, [projectSettingModalDisclosure]);
 
   const handleClickSettingProject = useCallback(() => {
     setUpdateTargetProject(currentProject);
-    onOpen();
-  }, [currentProject, onOpen]);
+    projectSettingModalDisclosure.onOpen();
+  }, [currentProject, projectSettingModalDisclosure]);
 
   const handleChangeProject = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -62,6 +64,10 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
     },
     [currentProject, onChangeCurrentProject]
   );
+
+  const handleClickGlobalProject = useCallback(() => {
+    globalSettingModalDisclosure.onOpen();
+  }, [globalSettingModalDisclosure]);
 
   return (
     <Box bg="gray.100" padding={2}>
@@ -95,9 +101,19 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
           </Button>
         </Box>
       </Flex>
-      {isOpen && (
-        <ProjectModal project={updateTargetProject} onClose={onClose} onChangeProjects={handleChangeProjects} />
+      <Box position="absolute" right={4} top={3}>
+        <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickGlobalProject}>
+          <FontAwesomeIcon icon={faCog} />
+        </Button>
+      </Box>
+      {projectSettingModalDisclosure.isOpen && (
+        <ProjectModal
+          project={updateTargetProject}
+          onClose={projectSettingModalDisclosure.onClose}
+          onChangeProjects={handleChangeProjects}
+        />
       )}
+      {globalSettingModalDisclosure.isOpen && <GlobalSettingModal onClose={globalSettingModalDisclosure.onClose} />}
     </Box>
   );
 };
