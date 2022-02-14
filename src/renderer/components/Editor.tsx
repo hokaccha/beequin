@@ -18,24 +18,34 @@ import "codemirror/mode/sql/sql";
 import "codemirror/lib/codemirror.css";
 import "codemirror/addon/dialog/dialog.css";
 import "codemirror/addon/hint/show-hint.css";
+import type { Setting } from "~/../main/setting/setting";
 
 type Props = {
   defaultQuery: string;
+  setting: Setting;
   onChange: (query: string) => void;
   onExecute: () => void;
   onExecuteDryRun: () => void;
 };
 
-const DEFAULT_INDENT = 2;
+function getIndentUnit(indent: Setting["editor"]["indent"]) {
+  switch (indent) {
+    case "2space":
+      return 2;
+    case "4space":
+      return 4;
+  }
+}
 
-const options: EditorConfiguration = {
-  mode: "text/x-sql",
-  keyMap: "vim", // Todo: configurable
-  lineNumbers: true,
-  indentUnit: DEFAULT_INDENT, // Todo: configurable
-};
+export const Editor: FC<Props> = ({ defaultQuery, setting, onChange, onExecute, onExecuteDryRun }) => {
+  const options: EditorConfiguration = {
+    mode: "text/x-sql",
+    keyMap: setting.editor.mode,
+    lineNumbers: true,
+    indentUnit: getIndentUnit(setting.editor.indent),
+    lineWrapping: setting.editor.lineWrapping,
+  };
 
-export const Editor: FC<Props> = ({ defaultQuery, onChange, onExecute, onExecuteDryRun }) => {
   const editorRef = useRef<CodeMirrorEditor | null>(null);
 
   const handleDidMount = useCallback((editor: CodeMirrorEditor) => {
@@ -71,8 +81,8 @@ export const Editor: FC<Props> = ({ defaultQuery, onChange, onExecute, onExecute
         try {
           formattedQuery = format(cm.getValue(), {
             linesBetweenQueries: 2,
-            indent: " ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT),
-            uppercase: false,
+            indent: " ".repeat(getIndentUnit(setting.editor.indent)),
+            uppercase: setting.formatter.convertKeywordToUppercase,
           });
         } catch (err) {
           alert("Format failed😢");
@@ -85,13 +95,13 @@ export const Editor: FC<Props> = ({ defaultQuery, onChange, onExecute, onExecute
       Tab: (cm: CodeMirror.Editor) => {
         if (!cm.state.vim) {
           if (cm.getDoc().somethingSelected()) cm.execCommand("indentMore");
-          else cm.replaceSelection(" ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT));
+          else cm.replaceSelection(" ".repeat(getIndentUnit(setting.editor.indent)));
         } else if (cm.state.vim.insertMode) {
-          cm.replaceSelection(" ".repeat(cm.getOption("indentUnit") || DEFAULT_INDENT));
+          cm.replaceSelection(" ".repeat(getIndentUnit(setting.editor.indent)));
         }
       },
     });
-  }, [onExecute, onExecuteDryRun]);
+  }, [onExecute, onExecuteDryRun, setting.editor.indent, setting.formatter.convertKeywordToUppercase]);
 
   return (
     <div className="Editor">

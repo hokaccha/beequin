@@ -4,21 +4,24 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
 import { useEffect, useState, useCallback } from "react";
 
-import { GlobalSettingModal } from "./GlobalSettingModal";
 import { ProjectModal } from "./ProjectModal";
 import type { OnChangeProjects } from "./ProjectModal";
+import { SettingModal } from "./SettingModal";
 import type { Project } from "~/../main/project/project";
 
+import type { Setting } from "~/../main/setting/setting";
 import { ipc } from "~/lib/ipc";
 
 type Props = {
   currentProject: Project | null;
   onChangeCurrentProject: (project: Project | null) => void;
+  setting: Setting;
+  onChangeSetting: (setting: Setting) => void;
 };
 
-export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) => {
-  const projectSettingModalDisclosure = useDisclosure();
-  const globalSettingModalDisclosure = useDisclosure();
+export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject, setting, onChangeSetting }) => {
+  const projectModalDisclosure = useDisclosure();
+  const settingModalDisclosure = useDisclosure();
   const [updateTargetProject, setUpdateTargetProject] = useState<Project | null>(currentProject);
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -28,13 +31,13 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
 
   const handleClickNewProject = useCallback(() => {
     setUpdateTargetProject(null);
-    projectSettingModalDisclosure.onOpen();
-  }, [projectSettingModalDisclosure]);
+    projectModalDisclosure.onOpen();
+  }, [projectModalDisclosure]);
 
-  const handleClickSettingProject = useCallback(() => {
+  const handleClickEditProject = useCallback(() => {
     setUpdateTargetProject(currentProject);
-    projectSettingModalDisclosure.onOpen();
-  }, [currentProject, projectSettingModalDisclosure]);
+    projectModalDisclosure.onOpen();
+  }, [currentProject, projectModalDisclosure]);
 
   const handleChangeProject = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -65,9 +68,9 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
     [currentProject, onChangeCurrentProject]
   );
 
-  const handleClickGlobalProject = useCallback(() => {
-    globalSettingModalDisclosure.onOpen();
-  }, [globalSettingModalDisclosure]);
+  const handleClickSetting = useCallback(() => {
+    settingModalDisclosure.onOpen();
+  }, [settingModalDisclosure]);
 
   return (
     <Box bg="gray.100" padding={2}>
@@ -90,7 +93,7 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
         </Box>
         {currentProject && (
           <Box display="flex" alignItems="center">
-            <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickSettingProject}>
+            <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickEditProject}>
               <FontAwesomeIcon icon={faCog} />
             </Button>
           </Box>
@@ -102,18 +105,20 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject }) =>
         </Box>
       </Flex>
       <Box position="absolute" right={4} top={3}>
-        <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickGlobalProject}>
+        <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickSetting}>
           <FontAwesomeIcon icon={faCog} />
         </Button>
       </Box>
-      {projectSettingModalDisclosure.isOpen && (
+      {projectModalDisclosure.isOpen && (
         <ProjectModal
           project={updateTargetProject}
-          onClose={projectSettingModalDisclosure.onClose}
+          onClose={projectModalDisclosure.onClose}
           onChangeProjects={handleChangeProjects}
         />
       )}
-      {globalSettingModalDisclosure.isOpen && <GlobalSettingModal onClose={globalSettingModalDisclosure.onClose} />}
+      {settingModalDisclosure.isOpen && (
+        <SettingModal onClose={settingModalDisclosure.onClose} setting={setting} onChangeSetting={onChangeSetting} />
+      )}
     </Box>
   );
 };

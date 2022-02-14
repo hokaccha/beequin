@@ -8,6 +8,7 @@ import { Editor } from "./Editor";
 import { Explorer } from "./Explorer";
 import { Header } from "./Header";
 import type { Project } from "~/../main/project/project";
+import type { Setting } from "~/../main/setting/setting";
 import { ipc } from "~/lib/ipc";
 import { useQueryStorage } from "~/lib/query";
 
@@ -17,6 +18,7 @@ export const App: FC = () => {
   const { getCurrentQuery, saveQuery } = useQueryStorage();
   const [queryResult, setQueryResult] = useState<any>(null);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const [setting, setSetting] = useState<Setting | null>(null);
 
   const executeQuery = useCallback(async (): Promise<void> => {
     const query = getCurrentQuery();
@@ -41,6 +43,11 @@ export const App: FC = () => {
     }
   }, []);
 
+  const handleChangeSetting = useCallback(async (setting: Setting) => {
+    await ipc.invoke.saveSetting(setting);
+    setSetting(setting);
+  }, []);
+
   useEffect(() => {
     ipc.on.executeQueryFromMenu(() => {
       executeQuery();
@@ -56,14 +63,32 @@ export const App: FC = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      const setting = await ipc.invoke.loadSetting();
+      setSetting(setting);
+    })();
+  }, []);
+
+  // TODO: loading
+  if (setting === null) {
+    return null;
+  }
+
   return (
     <div>
-      <Header onChangeCurrentProject={handleChangeCurrentProject} currentProject={currentProject} />
+      <Header
+        onChangeCurrentProject={handleChangeCurrentProject}
+        currentProject={currentProject}
+        setting={setting}
+        onChangeSetting={handleChangeSetting}
+      />
       <Flex>
         <Box flex={1}>
           <Box height="50vh">
             <Editor
               defaultQuery={getCurrentQuery()}
+              setting={setting}
               onChange={saveQuery}
               onExecute={executeQuery}
               onExecuteDryRun={dryRunQuery}

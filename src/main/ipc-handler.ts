@@ -8,6 +8,7 @@ import {
   validateProject,
   getProject,
 } from "./project/project";
+import { loadSetting, saveSetting } from "./setting/setting";
 
 export function initIpc(): void {
   ipcMain.handle("executeQuery", async (_event, query, projectUuid) => {
@@ -59,5 +60,13 @@ export function initIpc(): void {
 
   ipcMain.handle("validateProject", async (_event, project) => {
     return validateProject(project);
+  });
+
+  ipcMain.handle("saveSetting", async (_event, setting) => {
+    return saveSetting(setting);
+  });
+
+  ipcMain.handle("loadSetting", async () => {
+    return loadSetting();
   });
 }

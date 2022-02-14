@@ -2,6 +2,7 @@ import type { Dataset, DryRunResponse, QueryResponse } from "./bigquery/client";
 import type { IpcFromMainHandler } from "./ipc-lib";
 import { createIpc } from "./ipc-lib";
 import type { Project } from "./project/project";
+import type { Setting } from "./setting/setting";
 
 export type IpcFromRenderer = {
   executeQuery: (query: string, projectUuid: string) => Promise<QueryResponse>;
@@ -13,6 +14,8 @@ export type IpcFromRenderer = {
   updateProject: (project: Project) => Promise<void>;
   deleteProject: (projectUuid: string) => Promise<void>;
   validateProject: (project: Omit<Project, "uuid">) => Promise<boolean>;
+  saveSetting: (setting: Setting) => Promise<void>;
+  loadSetting: () => Promise<Setting>;
 };
 
 export type IpcFromMain = {
@@ -37,6 +40,8 @@ export const ipc: IPC = {
     updateProject: (project: Project) => ipcRenderer.invoke("updateProject", project),
     deleteProject: (projectUuid: string) => ipcRenderer.invoke("deleteProject", projectUuid),
     validateProject: (project: Omit<Project, "uuid">) => ipcRenderer.invoke("validateProject", project),
+    saveSetting: (setting: Setting) => ipcRenderer.invoke("saveSetting", setting),
+    loadSetting: () => ipcRenderer.invoke("loadSetting"),
   },
 
   on: {

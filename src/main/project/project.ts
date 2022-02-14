@@ -34,7 +34,7 @@ async function loadData(): Promise<Project[]> {
 }
 
 async function saveData(projects: Project[]): Promise<void> {
-  await fs.writeFile(configFilePath, JSON.stringify(projects));
+  await fs.writeFile(configFilePath, JSON.stringify(projects, null, 2));
 }
 
 export async function getProjects(): Promise<Project[]> {
