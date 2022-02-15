@@ -1,5 +1,15 @@
-import { Box, ListItem, UnorderedList } from "@chakra-ui/react";
-import { faSync } from "@fortawesome/free-solid-svg-icons";
+import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Box,
+  HStack,
+  ListItem,
+  UnorderedList,
+} from "@chakra-ui/react";
+import { faSync, faTable } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
 import { useCallback } from "react";
@@ -18,8 +28,8 @@ export const Explorer: FC<Props> = ({ project }) => {
     return datasets;
   }, [project]);
 
-  const handleClickItem = useCallback((datasetId: string) => {
-    console.info(datasetId);
+  const handleClickTable = useCallback((datasetId: string, tableId: string) => {
+    console.info(datasetId, tableId);
   }, []);
 
   return (
@@ -31,18 +41,37 @@ export const Explorer: FC<Props> = ({ project }) => {
       ) : state.error ? (
         <Box>Error: {state.error.message}</Box>
       ) : (
-        <UnorderedList>
+        <Accordion allowMultiple>
           {state.value?.map((dataset) => (
-            <ListItem key={dataset.id} onClick={() => handleClickItem(dataset.id)}>
-              {dataset.id}
-              <UnorderedList>
-                {dataset.tables.map((table) => (
-                  <ListItem key={table.id}>{table.id}</ListItem>
-                ))}
-              </UnorderedList>
-            </ListItem>
+            <AccordionItem key={dataset.id}>
+              <AccordionButton>
+                <Box flex="1" textAlign="left">
+                  {dataset.id}
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <UnorderedList listStyleType="none">
+                  {dataset.tables.map((table) => (
+                    <ListItem
+                      key={table.id}
+                      onClick={() => handleClickTable(dataset.id, table.id)}
+                      cursor="pointer"
+                      _hover={{ color: "blue.500" }}
+                    >
+                      <HStack>
+                        <Box>
+                          <FontAwesomeIcon icon={faTable} />
+                        </Box>
+                        <Box>{table.id}</Box>
+                      </HStack>
+                    </ListItem>
+                  ))}
+                </UnorderedList>
+              </AccordionPanel>
+            </AccordionItem>
           ))}
-        </UnorderedList>
+        </Accordion>
       )}
     </Box>
   );

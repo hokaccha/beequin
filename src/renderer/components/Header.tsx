@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Select, useDisclosure } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Select, Spacer, useDisclosure } from "@chakra-ui/react";
 import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
@@ -73,42 +73,35 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject, sett
   }, [settingModalDisclosure]);
 
   return (
-    <Box bg="gray.100" padding={2}>
-      <Flex gap={2}>
-        <Box>
-          {projects.length !== 0 && (
-            <Select
-              w="auto"
-              onChange={handleChangeProject}
-              placeholder={currentProject ? undefined : "Select Project"}
-              value={currentProject?.uuid}
-            >
-              {projects.map((project) => (
-                <option key={project.uuid} value={project.uuid}>
-                  {project.projectId}
-                </option>
-              ))}
-            </Select>
-          )}
-        </Box>
-        {currentProject && (
-          <Box display="flex" alignItems="center">
-            <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickEditProject}>
-              <FontAwesomeIcon icon={faCog} />
-            </Button>
-          </Box>
+    <>
+      <HStack bg="gray.100" padding={2}>
+        {projects.length !== 0 && (
+          <Select
+            w="auto"
+            onChange={handleChangeProject}
+            placeholder={currentProject ? undefined : "Select Project"}
+            value={currentProject?.uuid}
+          >
+            {projects.map((project) => (
+              <option key={project.uuid} value={project.uuid}>
+                {project.projectId}
+              </option>
+            ))}
+          </Select>
         )}
-        <Box display="flex" alignItems="center">
-          <Button onClick={handleClickNewProject} colorScheme="green" size="sm">
-            Create New Project
+        {currentProject && (
+          <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickEditProject}>
+            <FontAwesomeIcon icon={faCog} />
           </Button>
-        </Box>
-      </Flex>
-      <Box position="absolute" right={4} top={3}>
-        <Button size="sm" bg="gray.300" color="gray.800" onClick={handleClickSetting}>
+        )}
+        <Button onClick={handleClickNewProject} colorScheme="green" size="sm">
+          Create New Project
+        </Button>
+        <Spacer />
+        <Button size="sm" colorScheme="blue" onClick={handleClickSetting}>
           <FontAwesomeIcon icon={faCog} />
         </Button>
-      </Box>
+      </HStack>
       {projectModalDisclosure.isOpen && (
         <ProjectModal
           project={updateTargetProject}
@@ -119,6 +112,6 @@ export const Header: FC<Props> = ({ currentProject, onChangeCurrentProject, sett
       {settingModalDisclosure.isOpen && (
         <SettingModal onClose={settingModalDisclosure.onClose} setting={setting} onChangeSetting={onChangeSetting} />
       )}
-    </Box>
+    </>
   );
 };

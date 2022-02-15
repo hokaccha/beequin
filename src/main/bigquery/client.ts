@@ -78,9 +78,11 @@ export class BigQueryClient {
       calledApiCount++;
       promises.push(fetchTable());
 
-      // https://cloud.google.com/bigquery/quotas#api_request_quotas
       // > A user can make up to 100 API requests per second to an API method.
-      if (calledApiCount >= 100) {
+      // https://cloud.google.com/bigquery/quotas#api_request_quotas
+      //
+      // We use half that value for safety.
+      if (calledApiCount >= 50) {
         promises.push(wait(1000));
         await Promise.all(promises);
         promises = [];

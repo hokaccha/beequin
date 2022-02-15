@@ -17,8 +17,6 @@ import type { FC } from "react";
 import { useCallback } from "react";
 import type { Setting } from "~/../main/setting/setting";
 
-import { ipc } from "~/lib/ipc";
-
 type Props = {
   onClose: () => void;
   setting: Setting;
