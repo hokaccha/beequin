@@ -1,3 +1,4 @@
+import type { TableField, TableMetadata } from "@google-cloud/bigquery";
 import { BigQuery } from "@google-cloud/bigquery";
 import { wait } from "../utils/timer";
 
@@ -94,5 +95,11 @@ export class BigQueryClient {
     await Promise.all(promises);
 
     return ret;
+  }
+
+  async getTableSchema(datasetId: string, tableId: string): Promise<TableField[]> {
+    const resp = await this.bigquery.dataset(datasetId).table(tableId).getMetadata();
+    const metadata = resp[0] as TableMetadata;
+    return metadata.schema?.fields || [];
   }
 }

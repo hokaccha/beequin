@@ -1,3 +1,4 @@
+import type { TableField } from "@google-cloud/bigquery";
 import type { Dataset, DryRunResponse, QueryResponse } from "./bigquery/client";
 import type { IpcFromMainHandler } from "./ipc-lib";
 import { createIpc } from "./ipc-lib";
@@ -8,6 +9,7 @@ export type IpcFromRenderer = {
   executeQuery: (query: string, projectUuid: string) => Promise<QueryResponse>;
   dryRunQuery: (query: string, projectUuid: string) => Promise<DryRunResponse>;
   getDatasets: (projectUuid: string) => Promise<Dataset[]>;
+  getTableSchema: (projectUuid: string, datasetId: string, tableId: string) => Promise<TableField[]>;
   getProjects: () => Promise<Project[]>;
   getProject: (projectUuid: string) => Promise<Project | null>;
   createProject: (project: Omit<Project, "uuid">) => Promise<Project>;
@@ -34,6 +36,8 @@ export const ipc: IPC = {
     executeQuery: (query, projectUuid) => ipcRenderer.invoke("executeQuery", query, projectUuid),
     dryRunQuery: (query, projectUuid) => ipcRenderer.invoke("dryRunQuery", query, projectUuid),
     getDatasets: (projectUuid) => ipcRenderer.invoke("getDatasets", projectUuid),
+    getTableSchema: (projectUuid, datasetId, tableId) =>
+      ipcRenderer.invoke("getTableSchema", projectUuid, datasetId, tableId),
     getProjects: () => ipcRenderer.invoke("getProjects"),
     getProject: (projectUuid: string) => ipcRenderer.invoke("getProject", projectUuid),
     createProject: (project: Omit<Project, "uuid">) => ipcRenderer.invoke("createProject", project),

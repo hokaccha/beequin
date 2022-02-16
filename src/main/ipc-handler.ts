@@ -38,6 +38,15 @@ export function initIpc(): void {
     return client.getDatasets();
   });
 
+  ipcMain.handle("getTableSchema", async (_event, projectUuid, datasetId, tableId) => {
+    const project = await getProject(projectUuid);
+    if (project === null) {
+      throw new Error("project not found");
+    }
+    const client = new BigQueryClient(project);
+    return client.getTableSchema(datasetId, tableId);
+  });
+
   ipcMain.handle("getProjects", async () => {
     return getProjects();
   });
