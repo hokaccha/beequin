@@ -1,8 +1,9 @@
 import type { Editor as CodeMirrorEditor, EditorConfiguration } from "codemirror";
+import CodeMirror from "codemirror";
 import type { FC } from "react";
 import { useEffect, useRef, useCallback } from "react";
 
-import { UnControlled as CodeMirror } from "react-codemirror2";
+import { UnControlled as ReactCodeMirror } from "react-codemirror2";
 import type { IUnControlledCodeMirror } from "react-codemirror2";
 import { format } from "sql-formatter";
 
@@ -13,11 +14,15 @@ import "codemirror/addon/hint/show-hint";
 import "codemirror/addon/hint/sql-hint";
 import "codemirror/addon/search/search";
 import "codemirror/addon/runmode/colorize";
+import "codemirror/addon/fold/foldcode";
+import "codemirror/addon/fold/foldgutter";
+import "codemirror/addon/fold/indent-fold";
 import "codemirror/keymap/vim";
 import "codemirror/mode/sql/sql";
 import "codemirror/lib/codemirror.css";
 import "codemirror/addon/dialog/dialog.css";
 import "codemirror/addon/hint/show-hint.css";
+import "codemirror/addon/fold/foldgutter.css";
 import type { Setting } from "~/../main/setting/setting";
 
 type Props = {
@@ -44,6 +49,12 @@ export const Editor: FC<Props> = ({ defaultQuery, setting, onChange, onExecute, 
     lineNumbers: true,
     indentUnit: getIndentUnit(setting.editor.indent),
     lineWrapping: setting.editor.lineWrapping,
+    foldGutter: true,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+    foldOptions: {
+      rangeFinder: (CodeMirror as any).helpers.fold.indent,
+      widget: " <--->",
+    },
   };
 
   const editorRef = useRef<CodeMirrorEditor | null>(null);
@@ -105,12 +116,12 @@ export const Editor: FC<Props> = ({ defaultQuery, setting, onChange, onExecute, 
 
   return (
     <div className="Editor">
-      <CodeMirror
+      <ReactCodeMirror
         value={defaultQuery}
         onChange={handleChange}
         options={options}
         editorDidMount={handleDidMount}
-      ></CodeMirror>
+      ></ReactCodeMirror>
     </div>
   );
 };

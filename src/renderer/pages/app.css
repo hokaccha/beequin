@@ -31,3 +31,8 @@ body {
   color: #999999;
   position: absolute;
 }
+
+.CodeMirror.cm-s-default .CodeMirror-foldmarker {
+  text-shadow: none;
+  color: #ca067a;
+}
