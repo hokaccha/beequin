@@ -1,4 +1,4 @@
-import { Box, Button, Flex, HStack, Select, Spacer, useDisclosure } from "@chakra-ui/react";
+import { Button, HStack, Select, Spacer, useDisclosure } from "@chakra-ui/react";
 import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { FC } from "react";
