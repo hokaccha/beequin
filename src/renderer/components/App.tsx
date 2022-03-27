@@ -1,6 +1,7 @@
 import { Box, Button, Flex } from "@chakra-ui/react";
 import { faChevronCircleRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import prettyBytes from "pretty-bytes";
 import type { FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -10,28 +11,27 @@ import { Header } from "./Header";
 import type { Project } from "~/../main/project/project";
 import type { Setting } from "~/../main/setting/setting";
 import { ipc } from "~/lib/ipc";
-import { useQueryStorage } from "~/lib/query";
+import { useQueryState, useQueryStorage } from "~/lib/query";
 
 const STORAGE_KEY_CURRENT_PROJECT_UUID = "currentProjectUuid";
 
 export const App: FC = () => {
   const { getCurrentQuery, saveQuery } = useQueryStorage();
-  const [queryResult, setQueryResult] = useState<any>(null);
+  const queryState = useQueryState();
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [setting, setSetting] = useState<Setting | null>(null);
 
   const executeQuery = useCallback(async (): Promise<void> => {
     const query = getCurrentQuery();
     if (!query || !currentProject) return;
-    const response = await ipc.invoke.executeQuery(query, currentProject.uuid);
-    setQueryResult(response);
-  }, [getCurrentQuery, currentProject]);
+    queryState.executeQuery(query, currentProject.uuid);
+  }, [getCurrentQuery, currentProject, queryState]);
 
   const dryRunQuery = useCallback(async (): Promise<void> => {
     const query = getCurrentQuery();
     if (!query || !currentProject) return;
     const response = await ipc.invoke.dryRunQuery(query, currentProject.uuid);
-    setQueryResult(response);
+    window.alert(`This query will process bytes ${prettyBytes(Number(response.totalBytesProcessed))} when run`);
   }, [getCurrentQuery, currentProject]);
 
   const handleChangeCurrentProject = useCallback((project: Project | null) => {
@@ -47,6 +47,13 @@ export const App: FC = () => {
     await ipc.invoke.saveSetting(setting);
     setSetting(setting);
   }, []);
+
+  const handleCancel = useCallback(() => {
+    if (queryState.queryState?.status !== "running") return;
+    if (currentProject === null) return;
+    const jobId = queryState.queryState.jobId;
+    queryState.cancelQuery(jobId, currentProject.uuid);
+  }, [queryState, currentProject]);
 
   useEffect(() => {
     ipc.on.executeQueryFromMenu(() => {
@@ -103,6 +110,11 @@ export const App: FC = () => {
             >
               Run
             </Button>
+            {queryState.queryState?.status === "running" && (
+              <Button size="sm" colorScheme="blue" onClick={handleCancel}>
+                Cancel
+              </Button>
+            )}
             <Button
               leftIcon={<FontAwesomeIcon icon={faChevronCircleRight} />}
               size="sm"
@@ -112,7 +124,7 @@ export const App: FC = () => {
               Dry Run
             </Button>
           </Flex>
-          <Box>{queryResult && <pre>{JSON.stringify(queryResult, null, 2)}</pre>}</Box>
+          <Box>{queryState.queryState && <pre>{JSON.stringify(queryState.queryState, null, 2)}</pre>}</Box>
         </Box>
         <Box width={300}>
           <Explorer project={currentProject} />

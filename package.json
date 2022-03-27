@@ -36,6 +36,7 @@
     "electron-next": "latest",
     "framer-motion": "^5",
     "monaco-editor": "^0.31.1",
+    "pretty-bytes": "^6.0.0",
     "react": "latest",
     "react-codemirror2": "^7.2.1",
     "react-dom": "latest",

@@ -1,13 +1,15 @@
 import type { TableField } from "@google-cloud/bigquery";
-import type { Dataset, DryRunResponse, QueryResponse } from "./bigquery/client";
+import type { Dataset, DryRunResult, ExecuteQueryResult, JobResult } from "./bigquery/client";
 import type { IpcFromMainHandler } from "./ipc-lib";
 import { createIpc } from "./ipc-lib";
 import type { Project } from "./project/project";
 import type { Setting } from "./setting/setting";
 
 export type IpcFromRenderer = {
-  executeQuery: (query: string, projectUuid: string) => Promise<QueryResponse>;
-  dryRunQuery: (query: string, projectUuid: string) => Promise<DryRunResponse>;
+  executeQuery: (query: string, projectUuid: string) => Promise<ExecuteQueryResult>;
+  getJobResult: (jobId: string, projectUuid: string) => Promise<JobResult>;
+  cancelQuery: (jobId: string, projectUuid: string) => Promise<void>;
+  dryRunQuery: (query: string, projectUuid: string) => Promise<DryRunResult>;
   getDatasets: (projectUuid: string) => Promise<Dataset[]>;
   getTableSchema: (projectUuid: string, datasetId: string, tableId: string) => Promise<TableField[]>;
   getProjects: () => Promise<Project[]>;
@@ -34,6 +36,8 @@ export const { ipcRenderer, ipcMain } = createIpc<IpcFromRenderer, IpcFromMain>(
 export const ipc: IPC = {
   invoke: {
     executeQuery: (query, projectUuid) => ipcRenderer.invoke("executeQuery", query, projectUuid),
+    getJobResult: (jobId, projectUuid) => ipcRenderer.invoke("getJobResult", jobId, projectUuid),
+    cancelQuery: (jobId, projectUuid) => ipcRenderer.invoke("cancelQuery", jobId, projectUuid),
     dryRunQuery: (query, projectUuid) => ipcRenderer.invoke("dryRunQuery", query, projectUuid),
     getDatasets: (projectUuid) => ipcRenderer.invoke("getDatasets", projectUuid),
     getTableSchema: (projectUuid, datasetId, tableId) =>

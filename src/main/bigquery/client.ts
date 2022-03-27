@@ -7,7 +7,11 @@ type BigQueryClientOption = {
   keyFilename?: string;
 };
 
-export type QueryResponse = {
+export type ExecuteQueryResult = {
+  jobId: string;
+};
+
+export type JobResult = {
   responseRows: any;
   metadata: {
     totalBytesProcessed: string;
@@ -15,7 +19,7 @@ export type QueryResponse = {
   };
 };
 
-export type DryRunResponse = {
+export type DryRunResult = {
   totalBytesProcessed: string;
 };
 
@@ -29,6 +33,10 @@ export type Dataset = {
   tables: Table[];
 };
 
+type JobStatus = "running" | "canceled" | "completed";
+
+const jobStatusMap: Map<string, JobStatus> = new Map();
+
 export class BigQueryClient {
   private readonly bigquery: BigQuery;
 
@@ -36,10 +44,29 @@ export class BigQueryClient {
     this.bigquery = new BigQuery(options);
   }
 
-  async executeQuery(query: string): Promise<QueryResponse> {
+  async executeQuery(query: string): Promise<ExecuteQueryResult> {
     const [job] = await this.bigquery.createQueryJob({ query });
+    if (!job.id) throw new Error("Invalid job");
+
+    jobStatusMap.set(job.id, "running");
+
+    return {
+      jobId: job.id,
+    };
+  }
+
+  async getJobResult(jobId: string): Promise<JobResult> {
+    const job = await this.bigquery.job(jobId);
     const result = await job.getQueryResults();
     const [metadata] = await job.getMetadata();
+
+    if (jobStatusMap.get(jobId) === "canceled") {
+      // Todo: return custom error type
+      throw new Error("This job has already been canceled.");
+    }
+
+    jobStatusMap.set(jobId, "completed");
+
     return {
       responseRows: result,
       metadata: {
@@ -49,7 +76,13 @@ export class BigQueryClient {
     };
   }
 
-  async dryRunQuery(query: string): Promise<DryRunResponse> {
+  async cancelQuery(jobId: string): Promise<void> {
+    const job = await this.bigquery.job(jobId);
+    await job.cancel();
+    jobStatusMap.set(jobId, "canceled");
+  }
+
+  async dryRunQuery(query: string): Promise<DryRunResult> {
     const [job] = await this.bigquery.createQueryJob({ query, dryRun: true });
     return {
       totalBytesProcessed: job.metadata.statistics.totalBytesProcessed,

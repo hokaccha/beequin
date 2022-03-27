@@ -20,6 +20,15 @@ export function initIpc(): void {
     return client.executeQuery(query);
   });
 
+  ipcMain.handle("getJobResult", async (_event, jobId, projectUuid) => {
+    const project = await getProject(projectUuid);
+    if (project === null) {
+      throw new Error("project not found");
+    }
+    const client = new BigQueryClient(project);
+    return client.getJobResult(jobId);
+  });
+
   ipcMain.handle("dryRunQuery", async (_event, query, projectUuid) => {
     const project = await getProject(projectUuid);
     if (project === null) {
@@ -27,6 +36,15 @@ export function initIpc(): void {
     }
     const client = new BigQueryClient(project);
     return client.dryRunQuery(query);
+  });
+
+  ipcMain.handle("cancelQuery", async (_event, jobId, projectUuid) => {
+    const project = await getProject(projectUuid);
+    if (project === null) {
+      throw new Error("project not found");
+    }
+    const client = new BigQueryClient(project);
+    return client.cancelQuery(jobId);
   });
 
   ipcMain.handle("getDatasets", async (_event, projectUuid) => {
