@@ -78,6 +78,6 @@ export async function deleteProject(uuid: string): Promise<void> {
 
 export async function validateProject(project: Omit<Project, "uuid">): Promise<boolean> {
   const client = new BigQueryClient(project);
-  await client.executeQuery("select 1 /* Beequen validation query */");
+  await client.executeQuery("select 1 /* Beequin validation query */");
   return true;
 }

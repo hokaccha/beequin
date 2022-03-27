@@ -1,5 +1,5 @@
 module.exports = {
-  productName: "Beequen",
+  productName: "Beequin",
   asar: true,
   mac: {
     icon: "assets/icon.icns",
