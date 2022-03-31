@@ -1,9 +1,9 @@
 import { Box, Button, Flex } from "@chakra-ui/react";
-import { faChevronCircleRight } from "@fortawesome/free-solid-svg-icons";
+import { faSync, faChevronCircleRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import prettyBytes from "pretty-bytes";
 import type { FC } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
 import { Editor } from "./Editor";
 import { Explorer } from "./Explorer";
@@ -127,7 +127,17 @@ export const App: FC = () => {
           <Box>{queryState.queryState && <pre>{JSON.stringify(queryState.queryState, null, 2)}</pre>}</Box>
         </Box>
         <Box width={300}>
-          <Explorer project={currentProject} />
+          {currentProject && (
+            <Suspense
+              fallback={
+                <Box textAlign="center" pt={20} color="gray.400">
+                  <FontAwesomeIcon size="lg" icon={faSync} spin />
+                </Box>
+              }
+            >
+              <Explorer project={currentProject} />
+            </Suspense>
+          )}
         </Box>
       </Flex>
     </div>
