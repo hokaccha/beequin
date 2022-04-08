@@ -1,3 +1,4 @@
+import { format } from "@hokaccha/sql-formatter";
 import type { Editor as CodeMirrorEditor, EditorConfiguration } from "codemirror";
 import CodeMirror from "codemirror";
 import type { FC } from "react";
@@ -5,7 +6,6 @@ import { useEffect, useRef, useCallback } from "react";
 
 import { UnControlled as ReactCodeMirror } from "react-codemirror2";
 import type { IUnControlledCodeMirror } from "react-codemirror2";
-import { format } from "sql-formatter";
 
 import "codemirror/addon/comment/comment";
 import "codemirror/addon/display/autorefresh";
@@ -93,7 +93,7 @@ export const Editor: FC<Props> = ({ defaultQuery, setting, onChange, onExecute, 
           formattedQuery = format(cm.getValue(), {
             linesBetweenQueries: 2,
             indent: " ".repeat(getIndentUnit(setting.editor.indent)),
-            uppercase: setting.formatter.convertKeywordToUppercase,
+            keywordCase: setting.formatter.keywordCase,
           });
         } catch (err) {
           alert("Format failed😢");
@@ -112,7 +112,7 @@ export const Editor: FC<Props> = ({ defaultQuery, setting, onChange, onExecute, 
         }
       },
     });
-  }, [onExecute, onExecuteDryRun, setting.editor.indent, setting.formatter.convertKeywordToUppercase]);
+  }, [onExecute, onExecuteDryRun, setting.editor.indent, setting.formatter.keywordCase]);
 
   return (
     <div className="Editor">

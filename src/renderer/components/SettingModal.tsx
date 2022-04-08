@@ -85,15 +85,24 @@ export const SettingModal: FC<Props> = ({ onClose, setting, onChangeSetting }) =
               Formatter
             </Heading>
             <Heading as="h3" fontSize={16} mb={2} mt={4}>
-              Uppercase
+              Keyword Case
             </Heading>
-            <Checkbox
-              colorScheme="green"
-              isChecked={setting.formatter.convertKeywordToUppercase}
-              onChange={(e) => handleChange({ formatter: { convertKeywordToUppercase: e.target.checked } })}
+            <RadioGroup
+              value={setting.formatter.keywordCase}
+              onChange={(value) => handleChange({ formatter: { keywordCase: value } })}
             >
-              Convert SQL keywords to uppercase
-            </Checkbox>
+              <Stack spacing={5} direction="row">
+                <Radio colorScheme="green" value="upper">
+                  upper
+                </Radio>
+                <Radio colorScheme="green" value="lower">
+                  lower
+                </Radio>
+                <Radio colorScheme="green" value="preserve">
+                  preserve
+                </Radio>
+              </Stack>
+            </RadioGroup>
           </Box>
         </ModalBody>
       </ModalContent>

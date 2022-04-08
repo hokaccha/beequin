@@ -13,7 +13,7 @@ export const SettingSchema = z.object({
     .default({}),
   formatter: z
     .object({
-      convertKeywordToUppercase: z.boolean().default(false),
+      keywordCase: z.enum(["upper", "lower", "preserve"]).default("preserve"),
     })
     .default({}),
 });

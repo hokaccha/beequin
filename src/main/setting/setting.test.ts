@@ -9,7 +9,7 @@ test("getDefaultSetting", () => {
       lineWrapping: false,
     },
     formatter: {
-      convertKeywordToUppercase: false,
+      keywordCase: "preserve",
     },
   });
 });
