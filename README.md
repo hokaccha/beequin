@@ -1,14 +1,5 @@
-# Electron Template 2021
+# Beequin
 
-## Development
+**Under development!!!**
 
-```
-$ yarn install
-$ yarn dev
-```
-
-## Create Production app
-
-```
-$ yarn dist
-```
+Beequin is BigQuery client for lightweight data analysis.
