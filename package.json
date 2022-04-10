@@ -16,10 +16,10 @@
     "lint:tsc-main": "tsc --noEmit -p src/main",
     "lint:tsc-renderer": "tsc --noEmit -p src/renderer",
     "lint:eslint": "eslint . --max-warnings 0",
-    "lint:prettier": "prettier --check .",
+    "lint:prettier": "prettier --check './src/**/*.{ts,tsx}'",
     "format": "run-s format:*",
     "format:eslint": "eslint --fix .",
-    "format:prettier": "prettier --write ."
+    "format:prettier": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "dependencies": {
     "@chakra-ui/react": "^1.8.7",

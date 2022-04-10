@@ -2,3 +2,4 @@
 /dist/
 /src/renderer/.next/
 /node_modules/
+/src/renderer/lib/monaco-vim/
