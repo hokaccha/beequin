@@ -1,29 +1,12 @@
 import { format } from "@hokaccha/sql-formatter";
-import type { Editor as CodeMirrorEditor, EditorConfiguration } from "codemirror";
-import CodeMirror from "codemirror";
+import type { Monaco, OnChange, OnMount } from "@monaco-editor/react";
+import MonacoEditor from "@monaco-editor/react";
+import type { editor } from "monaco-editor";
 import type { FC } from "react";
-import { useEffect, useRef, useCallback } from "react";
-
-import { UnControlled as ReactCodeMirror } from "react-codemirror2";
-import type { IUnControlledCodeMirror } from "react-codemirror2";
-
-import "codemirror/addon/comment/comment";
-import "codemirror/addon/display/autorefresh";
-import "codemirror/addon/edit/matchbrackets";
-import "codemirror/addon/hint/show-hint";
-import "codemirror/addon/hint/sql-hint";
-import "codemirror/addon/search/search";
-import "codemirror/addon/runmode/colorize";
-import "codemirror/addon/fold/foldcode";
-import "codemirror/addon/fold/foldgutter";
-import "codemirror/addon/fold/indent-fold";
-import "codemirror/keymap/vim";
-import "codemirror/mode/sql/sql";
-import "codemirror/lib/codemirror.css";
-import "codemirror/addon/dialog/dialog.css";
-import "codemirror/addon/hint/show-hint.css";
-import "codemirror/addon/fold/foldgutter.css";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { Setting } from "~/../main/setting/setting";
+import { initVimMode } from "~/lib/monaco-vim";
+import type CMAdapter from "~/lib/monaco-vim/cm_adapter";
 
 type Props = {
   defaultQuery: string;
@@ -31,6 +14,15 @@ type Props = {
   onChange: (query: string) => void;
   onExecute: () => void;
   onExecuteDryRun: () => void;
+};
+
+const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
+  fontSize: 16,
+  minimap: { enabled: false },
+  renderLineHighlight: "none",
+  tabSize: 2,
+  renderWhitespace: "all",
+  scrollBeyondLastLine: false,
 };
 
 function getIndentUnit(indent: Setting["editor"]["indent"]) {
@@ -43,85 +35,79 @@ function getIndentUnit(indent: Setting["editor"]["indent"]) {
 }
 
 export const Editor: FC<Props> = ({ defaultQuery, setting, onChange, onExecute, onExecuteDryRun }) => {
-  const options: EditorConfiguration = {
-    mode: "text/x-sql",
-    keyMap: setting.editor.mode,
-    lineNumbers: true,
-    indentUnit: getIndentUnit(setting.editor.indent),
-    lineWrapping: setting.editor.lineWrapping,
-    foldGutter: true,
-    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-    foldOptions: {
-      rangeFinder: (CodeMirror as any).helpers.fold.indent,
-      widget: " <--->",
-    },
-  };
-
-  const editorRef = useRef<CodeMirrorEditor | null>(null);
-
-  const handleDidMount = useCallback((editor: CodeMirrorEditor) => {
-    editorRef.current = editor;
-  }, []);
-
-  const handleChange = useCallback<NonNullable<IUnControlledCodeMirror["onChange"]>>(
-    (_editor, _data, value) => {
+  const vimModeRef = useRef<CMAdapter | null>(null);
+  const [editorState, setEditorState] = useState<{ editor: editor.IStandaloneCodeEditor; monaco: Monaco } | null>(null);
+  const handleChange: OnChange = useCallback(
+    (value: string | undefined) => {
       onChange(value || "");
     },
     [onChange]
   );
 
   useEffect(() => {
-    const editor = editorRef.current;
-    if (editor === null) return;
-    editor.setOption("extraKeys", {
-      // Now supports only macOS
-      "Cmd-Enter": () => {
-        onExecute();
-      },
-      "Shift-Cmd-Enter": () => {
-        onExecuteDryRun();
-      },
-      "Cmd-A": () => {
-        editor.execCommand("selectAll");
-      },
-      "Cmd-/": () => {
-        editor.execCommand("toggleComment");
-      },
-      "Shift-Cmd-F": (cm: CodeMirror.Editor) => {
-        let formattedQuery: string | null = null;
-        try {
-          formattedQuery = format(cm.getValue(), {
-            linesBetweenQueries: 2,
-            indent: " ".repeat(getIndentUnit(setting.editor.indent)),
-            keywordCase: setting.formatter.keywordCase,
-          });
-        } catch (err) {
-          alert("Format failed😢");
-          console.error(err);
-        }
-        if (formattedQuery) {
-          cm.setValue(formattedQuery);
-        }
-      },
-      Tab: (cm: CodeMirror.Editor) => {
-        if (!cm.state.vim) {
-          if (cm.getDoc().somethingSelected()) cm.execCommand("indentMore");
-          else cm.replaceSelection(" ".repeat(getIndentUnit(setting.editor.indent)));
-        } else if (cm.state.vim.insertMode) {
-          cm.replaceSelection(" ".repeat(getIndentUnit(setting.editor.indent)));
-        }
+    if (editorState === null) return;
+
+    const { editor, monaco } = editorState;
+
+    monaco.editor.defineTheme("beequin", {
+      base: "vs",
+      inherit: true,
+      rules: [],
+      colors: {
+        "editorCursor.foreground": "#cccccc",
       },
     });
-  }, [onExecute, onExecuteDryRun, setting.editor.indent, setting.formatter.keywordCase]);
+    monaco.editor.setTheme("beequin");
+
+    if (vimModeRef.current !== null) {
+      vimModeRef.current.dispose();
+      vimModeRef.current = null;
+    }
+
+    if (setting.editor.mode === "vim") {
+      vimModeRef.current = initVimMode(editor);
+    }
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      onExecute();
+    });
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => {
+      onExecuteDryRun();
+    });
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, () => {
+      let formattedQuery: string | null = null;
+      const pos = editor.getPosition();
+      try {
+        formattedQuery = format(editor.getValue(), {
+          linesBetweenQueries: 2,
+          indent: " ".repeat(getIndentUnit(setting.editor.indent)),
+          keywordCase: setting.formatter.keywordCase,
+        });
+      } catch (err) {
+        alert("Format failed 😢");
+        console.error(err);
+      }
+      const range = editor.getModel()?.getFullModelRange();
+      if (formattedQuery && range) {
+        editor.executeEdits(null, [{ range, text: formattedQuery }]);
+        if (pos) editor.setPosition(pos);
+      }
+    });
+  }, [onExecute, onExecuteDryRun, setting, editorState]);
+
+  const handleEditorDidMount: OnMount = useCallback((editor, monaco) => {
+    setEditorState({ editor, monaco });
+  }, []);
 
   return (
-    <div className="Editor">
-      <ReactCodeMirror
-        value={defaultQuery}
-        onChange={handleChange}
-        options={options}
-        editorDidMount={handleDidMount}
-      ></ReactCodeMirror>
-    </div>
+    <MonacoEditor
+      defaultValue={defaultQuery}
+      language="sql"
+      onChange={handleChange}
+      options={defaultOptions}
+      onMount={handleEditorDidMount}
+    />
   );
 };

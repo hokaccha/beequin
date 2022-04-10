@@ -2,37 +2,3 @@ body {
   margin: 0;
   padding: 0;
 }
-
-.Editor .CodeMirror {
-  font-size: 14px;
-  font-family: monaco, monospace;
-}
-
-.CodeMirror.cm-s-default .cm-keyword {
-  color: #0000ff;
-}
-
-.CodeMirror.cm-s-default .cm-comment {
-  color: #008000;
-}
-
-.CodeMirror.cm-s-default.cm-fat-cursor .CodeMirror-cursor,
-.CodeMirror.cm-s-default .cm-animate-fat-cursor {
-  background-color: #cccccc;
-  opacity: 0.8;
-}
-
-.CodeMirror.cm-s-default .CodeMirror-cursor {
-  border-left: 2px solid #999999;
-}
-
-.CodeMirror.cm-s-default .cm-tab:before {
-  content: "→";
-  color: #999999;
-  position: absolute;
-}
-
-.CodeMirror.cm-s-default .CodeMirror-foldmarker {
-  text-shadow: none;
-  color: #666666;
-}
