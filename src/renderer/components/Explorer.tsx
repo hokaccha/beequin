@@ -64,12 +64,18 @@ export const Explorer: FC<Props> = ({ project }) => {
         <InputLeftElement pointerEvents="none">
           <FontAwesomeIcon icon={faSearch} color="gray.300" />
         </InputLeftElement>
-        <Input type="search" placeholder="Filter by table name" onChange={handleChangeFilter} />
+        <Input
+          type="search"
+          placeholder="Filter by table name"
+          onChange={handleChangeFilter}
+          border="none"
+          focusBorderColor="none"
+        />
       </InputGroup>
       <Accordion allowMultiple>
         {datasets?.map((dataset) => (
           <AccordionItem key={dataset.id}>
-            <AccordionButton>
+            <AccordionButton _focus={{ boxShadow: "unset " }}>
               <Box flex="1" textAlign="left">
                 {dataset.id} ({(tablesByDatabaseId[dataset.id] || []).length})
               </Box>
