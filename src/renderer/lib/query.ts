@@ -17,7 +17,7 @@ export function useQueryStorage() {
   return { getCurrentQuery, saveQuery };
 }
 
-type QueryState =
+export type QueryState =
   | {
       status: "running";
       jobId: string;

@@ -8,6 +8,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { Editor } from "./Editor";
 import { Explorer } from "./Explorer";
 import { Header } from "./Header";
+import { QueryResult } from "./QueryResult";
 import type { Project } from "~/../main/project/project";
 import type { Setting } from "~/../main/setting/setting";
 import { ipc } from "~/lib/ipc";
@@ -124,7 +125,7 @@ export const App: FC = () => {
               Dry Run
             </Button>
           </Flex>
-          <Box>{queryState.queryState && <pre>{JSON.stringify(queryState.queryState, null, 2)}</pre>}</Box>
+          <QueryResult queryState={queryState.queryState}></QueryResult>
         </Box>
         <Box width={300}>
           {currentProject && (
