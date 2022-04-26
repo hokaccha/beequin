@@ -3,37 +3,30 @@ import { faSync, faChevronCircleRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import prettyBytes from "pretty-bytes";
 import type { FC } from "react";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { useMemo, Suspense, useCallback, useEffect, useState } from "react";
 
 import { Editor } from "./Editor";
 import { Explorer } from "./Explorer";
 import { Header } from "./Header";
+import { QueryContent } from "./QueryContent";
 import { QueryResult } from "./QueryResult";
 import type { Project } from "~/../main/project/project";
 import type { Setting } from "~/../main/setting/setting";
 import { ipc } from "~/lib/ipc";
-import { useQueryState, useQueryStorage } from "~/lib/query";
+import type { Query } from "~/lib/query";
+import { createQuery, QueryState, useQueryState, useQueryStorage } from "~/lib/query";
 
 const STORAGE_KEY_CURRENT_PROJECT_UUID = "currentProjectUuid";
 
 export const App: FC = () => {
-  const { getCurrentQuery, saveQuery } = useQueryStorage();
-  const queryState = useQueryState();
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [setting, setSetting] = useState<Setting | null>(null);
+  const [queries, setQueries] = useState<Query[]>(() => [createQuery()]);
+  const [currentQueryId, setCurrentQueryId] = useState<string | null>(null);
 
-  const executeQuery = useCallback(async (): Promise<void> => {
-    const query = getCurrentQuery();
-    if (!query || !currentProject) return;
-    queryState.executeQuery(query, currentProject.uuid);
-  }, [getCurrentQuery, currentProject, queryState]);
-
-  const dryRunQuery = useCallback(async (): Promise<void> => {
-    const query = getCurrentQuery();
-    if (!query || !currentProject) return;
-    const response = await ipc.invoke.dryRunQuery(query, currentProject.uuid);
-    window.alert(`This query will process bytes ${prettyBytes(Number(response.totalBytesProcessed))} when run`);
-  }, [getCurrentQuery, currentProject]);
+  const currentQuery = useMemo(() => {
+    return queries.find((q) => q.id === currentQueryId) || queries[0];
+  }, [queries, currentQueryId]);
 
   const handleChangeCurrentProject = useCallback((project: Project | null) => {
     setCurrentProject(project);
@@ -49,18 +42,11 @@ export const App: FC = () => {
     setSetting(setting);
   }, []);
 
-  const handleCancel = useCallback(() => {
-    if (queryState.queryState?.status !== "running") return;
-    if (currentProject === null) return;
-    const jobId = queryState.queryState.jobId;
-    queryState.cancelQuery(jobId, currentProject.uuid);
-  }, [queryState, currentProject]);
-
-  useEffect(() => {
-    ipc.on.executeQueryFromMenu(() => {
-      executeQuery();
-    });
-  }, [executeQuery]);
+  const handleClickNewQuery = useCallback(() => {
+    const newQuery = createQuery();
+    const newQueries = queries.concat(newQuery);
+    setQueries(newQueries);
+  }, [queries]);
 
   useEffect(() => {
     (async () => {
@@ -91,44 +77,39 @@ export const App: FC = () => {
         setting={setting}
         onChangeSetting={handleChangeSetting}
       />
-      <Flex>
-        <Box flex={1}>
-          <Box height="50vh">
-            <Editor
-              defaultQuery={getCurrentQuery()}
-              setting={setting}
-              onChange={saveQuery}
-              onExecute={executeQuery}
-              onExecuteDryRun={dryRunQuery}
-            />
-          </Box>
-          <Flex bg="gray.200" width="full" padding={2} gap={2}>
-            <Button
-              leftIcon={<FontAwesomeIcon icon={faChevronCircleRight} />}
-              size="sm"
-              colorScheme="blue"
-              onClick={executeQuery}
-            >
-              Run
-            </Button>
-            {queryState.queryState?.status === "running" && (
-              <Button size="sm" colorScheme="blue" onClick={handleCancel}>
-                Cancel
+      {currentProject && (
+        <Flex>
+          <Box flex={1}>
+            <Flex bg="gray.200">
+              <Button size="xs" onClick={handleClickNewQuery}>
+                +
               </Button>
-            )}
-            <Button
-              leftIcon={<FontAwesomeIcon icon={faChevronCircleRight} />}
-              size="sm"
-              colorScheme="blue"
-              onClick={dryRunQuery}
-            >
-              Dry Run
-            </Button>
-          </Flex>
-          <QueryResult queryState={queryState.queryState}></QueryResult>
-        </Box>
-        <Box width={300}>
-          {currentProject && (
+              {queries.map((q) => (
+                <Box
+                  key={q.id}
+                  onClick={() => setCurrentQueryId(q.id)}
+                  fontSize={12}
+                  px={4}
+                  py={2}
+                  bg={q.id === currentQueryId ? "gray.200" : "gray.300"}
+                  borderLeft="1px"
+                  borderColor="gray.400"
+                  borderBottom={q.id === currentQueryId ? "3px" : "0px"}
+                  borderBottomColor="blue.600"
+                  borderBottomStyle="solid"
+                  _last={{ borderRight: "1px", borderRightColor: "gray.400" }}
+                >
+                  {q.title}
+                </Box>
+              ))}
+            </Flex>
+            {queries.map((q) => (
+              <Box key={q.id} display={q.id === currentQueryId ? "block" : "none"}>
+                <QueryContent query={q} project={currentProject} setting={setting} />
+              </Box>
+            ))}
+          </Box>
+          <Box width={300}>
             <Suspense
               fallback={
                 <Box textAlign="center" pt={20} color="gray.400">
@@ -138,9 +119,9 @@ export const App: FC = () => {
             >
               <Explorer project={currentProject} />
             </Suspense>
-          )}
-        </Box>
-      </Flex>
+          </Box>
+        </Flex>
+      )}
     </div>
   );
 };

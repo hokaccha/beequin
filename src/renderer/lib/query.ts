@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { ipc } from "./ipc";
 import type { JobResult } from "~/../main/bigquery/client";
 
@@ -72,4 +73,20 @@ export function useQueryState() {
   }, []);
 
   return { queryState, executeQuery, cancelQuery };
+}
+
+export type Query = {
+  id: string;
+  title: string;
+  query: string;
+  state: QueryState | null;
+};
+
+export function createQuery(): Query {
+  return {
+    id: uuidv4(),
+    title: "Untitled",
+    query: "",
+    state: null,
+  };
 }
