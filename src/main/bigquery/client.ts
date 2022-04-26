@@ -11,8 +11,19 @@ export type ExecuteQueryResult = {
   jobId: string;
 };
 
+export type ResultItem =
+  | string
+  | number
+  | boolean
+  | { value: string }
+  | Uint8Array
+  | Array<any>
+  | Record<string, any>
+  | null;
+export type ResultRow = Record<string, ResultItem>;
+
 export type JobResult = {
-  responseRows: any;
+  rows: ResultRow[];
   metadata: {
     totalBytesProcessed: string;
     totalSlotMs: number;
@@ -57,7 +68,7 @@ export class BigQueryClient {
 
   async getJobResult(jobId: string): Promise<JobResult> {
     const job = await this.bigquery.job(jobId);
-    const result = await job.getQueryResults();
+    const [rows] = await job.getQueryResults();
     const [metadata] = await job.getMetadata();
 
     if (jobStatusMap.get(jobId) === "canceled") {
@@ -68,7 +79,7 @@ export class BigQueryClient {
     jobStatusMap.set(jobId, "completed");
 
     return {
-      responseRows: result,
+      rows,
       metadata: {
         totalBytesProcessed: metadata.statistics.totalBytesProcessed,
         totalSlotMs: parseInt(metadata.statistics.totalSlotMs) || 0,

@@ -1,6 +1,6 @@
 import { Box, Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
 import type { FC } from "react";
-import type { JobResult } from "~/../main/bigquery/client";
+import type { JobResult, ResultItem } from "~/../main/bigquery/client";
 import type { QueryState } from "~/lib/query";
 
 type Props = {
@@ -28,14 +28,45 @@ export const QueryResult: FC<Props> = ({ queryState }) => {
   }
 };
 
+const ResultCell: FC<{ value: ResultItem }> = ({ value }) => {
+  if (value == null) {
+    return <Box color="gray.400">null</Box>;
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return <Box color="green.600">{value.toString()}</Box>;
+  }
+
+  if (typeof value === "boolean") {
+    return <Box color="blue.600">{value.toString()}</Box>;
+  }
+
+  // DATE, DATETIME, TIMESTAMP, GEOGRAPHY
+  if (Object.keys(value).length === 1 && "value" in value) {
+    return value.value;
+  }
+
+  // Bytes
+  if (value instanceof Uint8Array) {
+    return window.btoa(String.fromCharCode(...value));
+  }
+
+  // Array or Record
+  return <pre>{JSON.stringify(value, null, 2)}</pre>;
+};
+
 const QueryResultTable: FC<{ result: JobResult }> = ({ result }) => {
-  const rows = result.responseRows[0];
+  const { rows } = result;
   const headers = Object.keys(rows[0]);
   return (
     <Table>
       <Thead>
         <Tr>
-          {headers.map((h: any, i: number) => (
+          {headers.map((h, i) => (
             <Th key={i} borderColor="gray.500" textTransform="none" fontSize={14}>
               {h}
             </Th>
@@ -43,11 +74,11 @@ const QueryResultTable: FC<{ result: JobResult }> = ({ result }) => {
         </Tr>
       </Thead>
       <Tbody>
-        {rows.map((row: any, j: number) => (
+        {rows.map((row, j) => (
           <Tr key={j}>
             {Object.values(row).map((val, k) => (
               <Td key={k}>
-                <pre>{JSON.stringify(val, null, 2)}</pre>
+                <ResultCell value={val} />
               </Td>
             ))}
           </Tr>
