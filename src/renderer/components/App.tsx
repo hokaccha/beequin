@@ -22,11 +22,7 @@ export const App: FC = () => {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [setting, setSetting] = useState<Setting | null>(null);
   const [queries, setQueries] = useState<Query[]>(() => [createQuery()]);
-  const [currentQueryId, setCurrentQueryId] = useState<string | null>(null);
-
-  const currentQuery = useMemo(() => {
-    return queries.find((q) => q.id === currentQueryId) || queries[0];
-  }, [queries, currentQueryId]);
+  const [currentQueryId, setCurrentQueryId] = useState<string>(() => queries[0].id);
 
   const handleChangeCurrentProject = useCallback((project: Project | null) => {
     setCurrentProject(project);
@@ -36,6 +32,10 @@ export const App: FC = () => {
       localStorage.removeItem(STORAGE_KEY_CURRENT_PROJECT_UUID);
     }
   }, []);
+
+  const currentQuery = useMemo(() => {
+    return queries.find((q) => q.id === currentQueryId) || queries[0];
+  }, [queries, currentQueryId]);
 
   const handleChangeSetting = useCallback(async (setting: Setting) => {
     await ipc.invoke.saveSetting(setting);
@@ -91,7 +91,7 @@ export const App: FC = () => {
                   fontSize={12}
                   px={4}
                   py={2}
-                  bg={q.id === currentQueryId ? "gray.200" : "gray.300"}
+                  bg={q.id === currentQueryId ? "gray.300" : "gray.200"}
                   borderLeft="1px"
                   borderColor="gray.400"
                   borderBottom={q.id === currentQueryId ? "3px" : "0px"}
@@ -103,11 +103,7 @@ export const App: FC = () => {
                 </Box>
               ))}
             </Flex>
-            {queries.map((q) => (
-              <Box key={q.id} display={q.id === currentQueryId ? "block" : "none"}>
-                <QueryContent query={q} project={currentProject} setting={setting} />
-              </Box>
-            ))}
+            <QueryContent query={currentQuery} project={currentProject} setting={setting} />
           </Box>
           <Box width={300}>
             <Suspense

@@ -3,13 +3,13 @@ import type { Monaco, OnChange, OnMount } from "@monaco-editor/react";
 import MonacoEditor from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import type { FC } from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import type { Setting } from "~/../main/setting/setting";
 import { initVimMode } from "~/lib/monaco-vim";
 import type CMAdapter from "~/lib/monaco-vim/cm_adapter";
 
 type Props = {
-  defaultQuery: string;
+  queryId: string;
   setting: Setting;
   onChange: (query: string) => void;
   onExecute: () => void;
@@ -20,6 +20,7 @@ const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
   fontSize: 16,
   minimap: { enabled: false },
   renderLineHighlight: "none",
+  // todo: use settings
   tabSize: 2,
   renderWhitespace: "all",
   scrollBeyondLastLine: false,
@@ -34,7 +35,14 @@ function getIndentUnit(indent: Setting["editor"]["indent"]) {
   }
 }
 
-export const Editor: FC<Props> = ({ defaultQuery, setting, onChange, onExecute, onExecuteDryRun }) => {
+type EditorState = {
+  state?: editor.ICodeEditorViewState | null;
+  model: editor.ITextModel | null;
+};
+
+const editorStateMap = new Map<string, EditorState>();
+
+export const Editor: FC<Props> = ({ queryId, setting, onChange, onExecute, onExecuteDryRun }) => {
   const vimModeRef = useRef<CMAdapter | null>(null);
   const [editorState, setEditorState] = useState<{ editor: editor.IStandaloneCodeEditor; monaco: Monaco } | null>(null);
   const handleChange: OnChange = useCallback(
@@ -97,17 +105,44 @@ export const Editor: FC<Props> = ({ defaultQuery, setting, onChange, onExecute, 
     });
   }, [onExecute, onExecuteDryRun, setting, editorState]);
 
+  const prevQueryIdRef = useRef<string | null>(null);
+
+  useMemo(() => {
+    if (editorState === null) return;
+    if (prevQueryIdRef.current === null) return;
+
+    const { editor } = editorState;
+
+    const state = editorStateMap.get(prevQueryIdRef.current);
+    if (state == null) return;
+    state.state = editor.saveViewState();
+  }, [queryId, editorState]);
+
+  useEffect(() => {
+    if (editorState === null) return;
+    prevQueryIdRef.current = queryId;
+
+    const { editor, monaco } = editorState;
+    let state = editorStateMap.get(queryId);
+
+    if (state == null) {
+      state = { model: monaco.editor.createModel("", "sql") };
+      editorStateMap.set(queryId, state);
+    }
+
+    editor.setModel(state?.model ?? null);
+    // todo: rename
+    if (state?.state) {
+      editor.restoreViewState(state.state);
+    }
+    editor.focus();
+  }, [queryId, editorState]);
+
   const handleEditorDidMount: OnMount = useCallback((editor, monaco) => {
     setEditorState({ editor, monaco });
   }, []);
 
   return (
-    <MonacoEditor
-      defaultValue={defaultQuery}
-      language="sql"
-      onChange={handleChange}
-      options={defaultOptions}
-      onMount={handleEditorDidMount}
-    />
+    <MonacoEditor language="sql" onChange={handleChange} options={defaultOptions} onMount={handleEditorDidMount} />
   );
 };

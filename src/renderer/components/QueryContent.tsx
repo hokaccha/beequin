@@ -3,7 +3,7 @@ import { faChevronCircleRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import prettyBytes from "pretty-bytes";
 import type { FC } from "react";
-import { useCallback } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { Editor } from "./Editor";
 import { QueryResult } from "./QueryResult";
 import type { Project } from "~/../main/project/project";
@@ -19,10 +19,12 @@ type Props = {
 };
 
 export const QueryContent: FC<Props> = ({ query, project, setting }) => {
+  // todo: dont use ref
+  const currentQueryRef = useRef("");
   const queryState = useQueryState();
   const executeQuery = useCallback(async (): Promise<void> => {
-    queryState.executeQuery(query.query, project.uuid);
-  }, [project, queryState, query]);
+    queryState.executeQuery(currentQueryRef.current, project.uuid);
+  }, [project, queryState]);
 
   const dryRunQuery = useCallback(async (): Promise<void> => {
     const response = await ipc.invoke.dryRunQuery(query.query, project.uuid);
@@ -35,21 +37,22 @@ export const QueryContent: FC<Props> = ({ query, project, setting }) => {
     queryState.cancelQuery(jobId, project.uuid);
   }, [queryState, project]);
 
-  const saveQuery = useCallback(() => {
-    // todo
+  const saveQuery = useCallback((query: string) => {
+    currentQueryRef.current = query;
   }, []);
 
-  // useEffect(() => {
-  //   ipc.on.executeQueryFromMenu(() => {
-  //     executeQuery();
-  //   });
-  // }, [executeQuery]);
+  useEffect(() => {
+    ipc.on.executeQueryFromMenu(() => {
+      executeQuery();
+    });
+    // todo: off
+  }, [executeQuery]);
 
   return (
     <Box flex={1}>
       <Box height="50vh">
         <Editor
-          defaultQuery={query.query}
+          queryId={query.id}
           setting={setting}
           onChange={saveQuery}
           onExecute={executeQuery}
