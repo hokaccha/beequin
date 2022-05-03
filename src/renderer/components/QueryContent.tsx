@@ -27,7 +27,7 @@ export const QueryContent: FC<Props> = ({ query, project, setting }) => {
   }, [project, queryState]);
 
   const dryRunQuery = useCallback(async (): Promise<void> => {
-    const response = await ipc.invoke.dryRunQuery(query.query, project.uuid);
+    const response = await ipc.invoke.dryRunQuery(query.body, project.uuid);
     window.alert(`This query will process bytes ${prettyBytes(Number(response.totalBytesProcessed))} when run`);
   }, [project, query]);
 

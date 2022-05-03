@@ -75,18 +75,27 @@ export function useQueryState() {
   return { queryState, executeQuery, cancelQuery };
 }
 
+type Chart = {
+  title: string;
+  type: "bar" | "line";
+  x: string;
+  y: string;
+};
+
 export type Query = {
   id: string;
   title: string;
-  query: string;
+  body: string;
   state: QueryState | null;
+  charts: Chart[];
 };
 
 export function createQuery(): Query {
   return {
     id: uuidv4(),
     title: "Untitled",
-    query: "",
+    body: "",
     state: null,
+    charts: [],
   };
 }
